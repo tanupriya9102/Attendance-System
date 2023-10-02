@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import cv2
 import redis
-import insightface.app import FaceAnalysis
+from insightface.app import FaceAnalysis
 from sklearn.metrics import pairwise
 
 
@@ -25,7 +25,7 @@ faceapp.prepare(ctx_id=0,det_size=(640,640),det_thresh=0.5)
 
 # ml search algo
 #     cosine similarity
-def search_algo(df,feature_column,test_vector,name_role['Name','Role'],thresh=0.5):
+def search_algo(df,feature_column,test_vector,name_role=['Name','Role'],thresh=0.5):
     df=df.copy()
     X_list=df[feature_column].tolist()
     x=np.asarray(X_list)
@@ -48,7 +48,7 @@ def search_algo(df,feature_column,test_vector,name_role['Name','Role'],thresh=0.
 
 
 
-def face_prediction(test_image,df,feature_column,name_role['Name','Role'],thresh=0.5):    
+def face_prediction(test_image,df,feature_column,name_role=['Name','Role'],thresh=0.5):    
     results=faceapp.get(test_image)
     test_copy=test_image.copy()
     for res in results:
