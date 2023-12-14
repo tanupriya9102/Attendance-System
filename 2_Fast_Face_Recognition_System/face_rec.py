@@ -8,9 +8,9 @@ from sklearn.metrics import pairwise
 
 # Connect to redis client
 # redis-12025.c85.us-east-1-2.ec2.cloud.redislabs.com:12025
-hostname='redis-12025.c85.us-east-1-2.ec2.cloud.redislabs.com'
-port=12025
-password='LhNFHs1KTyB9C1MWktmKlu2oP8iSr6C6'
+hostname='redis-14366.c281.us-east-1-2.ec2.cloud.redislabs.com'
+port=14366
+password='3zs23egudfH9g21iFS3ebNHcdFjMTF43'
 r=redis.StrictRedis(host=hostname,
                     port=port,
                     password=password)
@@ -54,7 +54,7 @@ def face_prediction(test_image,df,feature_column,name_role=['Name','Role'],thres
     for res in results:
         x1,y1,x2,y2= res['bbox'].astype(int)
         embeddings=res['embedding']
-        person_name,person_role=search_algo(df_compress,'Facial_Features',test_vector=embeddings,name_role=name_role,thresh=thresh)
+        person_name,person_role=search_algo(df,'facial_features',test_vector=embeddings,name_role=name_role,thresh=thresh)
     #     print(person_name,person_role)
         if person_name=="Unknown":
             color=(0,0,255) #bgr
