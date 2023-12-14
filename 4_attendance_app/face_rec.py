@@ -65,29 +65,63 @@ def search_algo(df,feature_column,test_vector,name_role=['Name','Role'],thresh=0
         
     return person_name,person_role
 
+### Real Time Prediction
+# save logs for every 1 minute
+class RealTimePred:
+    def __init__(self):
+        self.logs=dict(name=[],role=[],current_time=[])
 
+    def reset_dict(self):
+        self.logs=dict(name=[],role=[],current_time=[])
 
-def face_prediction(test_image,df,feature_column,name_role=['Name','Role'],thresh=0.5):    
-    # find time
-    current_time=str(datetime.now())
-    
-    
-    results=faceapp.get(test_image)
-    test_copy=test_image.copy()
-    for res in results:
-        x1,y1,x2,y2= res['bbox'].astype(int)
-        embeddings=res['embedding']
-        person_name,person_role=search_algo(df,'facial_features',test_vector=embeddings,name_role=name_role,thresh=thresh)
-    #     print(person_name,person_role)
-        if person_name=="Unknown":
-            color=(0,0,255) #bgr
-        else:
-            color=(0,255,0)
+    def face_prediction(self,test_image,df,feature_column,name_role=['Name','Role'],thresh=0.5):    
+        # find time
+        current_time=str(datetime.now())
+        
+        results=faceapp.get(test_image)
+        test_copy=test_image.copy()
+        for res in results:
+            x1,y1,x2,y2= res['bbox'].astype(int)
+            embeddings=res['embedding']
+            person_name,person_role=search_algo(df,'facial_features',test_vector=embeddings,name_role=name_role,thresh=thresh)
+        #     print(person_name,person_role)
+            if person_name=="Unknown":
+                color=(0,0,255) #bgr
+            else:
+                color=(0,255,0)
 
-        cv2.rectangle(test_copy,(x1,y1),(x2,y2),color)
-        text_gen=person_name
-        cv2.putText(test_copy,text_gen,(x1,y1),cv2.FONT_HERSHEY_DUPLEX,0.7,color,2)
-        cv2.putText(test_copy,current_time,(x1,y2+10),cv2.FONT_HERSHEY_DUPLEX,0.7,color,2 )
+            cv2.rectangle(test_copy,(x1,y1),(x2,y2),color)
+            text_gen=person_name
+            cv2.putText(test_copy,text_gen,(x1,y1),cv2.FONT_HERSHEY_DUPLEX,0.7,color,2)
+            cv2.putText(test_copy,current_time,(x1,y2+10),cv2.FONT_HERSHEY_DUPLEX,0.7,color,2 )
+            # save info
+            self.logs['name'].append(person_name)
+            self.logs['role'].append(person_role)
+            self.logs['current_time'].append(current_time)
         return test_copy
 
 
+
+
+    def saveLogs_redis(self):
+        # create logs df 
+        dataframe=pd.DataFrame(self.logs)
+        # drop duplicates
+        dataframe.drop_duplicates('name',inplace=True)
+        # push data in redis 
+        # encode data 
+        name_list=dataframe['name'].to_list()
+        role_list=dataframe['role'].to_list()
+        ctime_list=dataframe['current_time'].to_list()
+        encoded_data=[]
+        for name,role,ctime in zip(name_list,role_list,ctime_list):
+            if name!="Unknown":
+                concat_string=f"{name}@{role}@{ctime}"
+                encoded_data.append(concat_string)
+
+        if len(encoded_data)>0:
+            r.lpush('attendance:logs',*encoded_data)
+
+        self.reset_dict()
+        
+        
