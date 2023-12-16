@@ -3,10 +3,7 @@ from Home import face_rec
 from streamlit_webrtc import webrtc_streamer
 import av
 import time
-
-
-
-st.set_page_config(page_title='Predictions',layout='centered')
+# st.set_page_config(page_title='Predictions',layout='wide')
 
 st.subheader("Real-Time Attendance System")
 
@@ -26,7 +23,6 @@ def video_frame_callback(frame):
     global setTime
     img = frame.to_ndarray(format="bgr24") #3d np array
     pred_img=realtimepred.face_prediction(img,redis_face_db,'facial_features',['Name','Role'],thresh=0.5)
-    # flipped = img[::-1,:,:]
     timenow=time.time()
     difftime=timenow-setTime
     if difftime>=waitTime:
@@ -38,3 +34,4 @@ def video_frame_callback(frame):
 
 
 webrtc_streamer(key="realtimePrediction", video_frame_callback=video_frame_callback)
+

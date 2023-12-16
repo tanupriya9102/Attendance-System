@@ -25,4 +25,3 @@ with tab2:
         st.write(load_logs(name=name))
 
 
-
